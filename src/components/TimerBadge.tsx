@@ -1,3 +1,4 @@
+import { Badge } from '@/components/ui/badge';
 import { formatTime } from '../lib/time';
 
 export default function TimerBadge({ remainingSeconds }: { remainingSeconds: number }) {
@@ -9,15 +10,15 @@ export default function TimerBadge({ remainingSeconds }: { remainingSeconds: num
         : 'bg-slate-100 text-slate-700';
 
   return (
-    <span
+    <Badge
       aria-label="Koha e mbetur"
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold tabular-nums ${tone}`}
+      className={`gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold tabular-nums ${tone}`}
     >
       <svg
         aria-hidden="true"
         viewBox="0 0 20 20"
         fill="currentColor"
-        className="h-4 w-4 opacity-70"
+        className="size-4 opacity-70"
       >
         <path
           fillRule="evenodd"
@@ -26,6 +27,6 @@ export default function TimerBadge({ remainingSeconds }: { remainingSeconds: num
         />
       </svg>
       {formatTime(remainingSeconds)}
-    </span>
+    </Badge>
   );
 }

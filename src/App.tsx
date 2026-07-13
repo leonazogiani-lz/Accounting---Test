@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { toast } from 'sonner';
+import { Toaster } from '@/components/ui/sonner';
 import { CANDIDATE_NAME_ID, questions, TEST_DURATION_SECONDS, type Question } from './questions';
 import { DEFAULT_COUNTRY_CODE, findCountry, isValidPhone, phoneLengthError } from './countries';
 import {
@@ -13,13 +15,12 @@ import {
   type PhoneValue,
   type ReferencesMap,
 } from './lib/storage';
-import { buildPayload, deliver } from './lib/submit';
+import { buildPayload, sendSubmissionEmail } from './lib/submit';
 import { useCountdown } from './hooks/useCountdown';
 import IntroScreen from './components/IntroScreen';
 import QuestionStep from './components/QuestionStep';
 import CompletionScreen, { type SubmitResult } from './components/CompletionScreen';
 import TimerBadge from './components/TimerBadge';
-import Toast from './components/Toast';
 import { isValidReference } from './components/ReferenceLinks';
 
 type Phase = 'intro' | 'test' | 'done';
@@ -62,7 +63,6 @@ export default function App() {
   );
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<SubmitResult | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
 
   const answersRef = useRef(answers);
   answersRef.current = answers;
@@ -95,14 +95,15 @@ export default function App() {
       );
 
       setPhase('done');
-      setToast(null);
+      toast.dismiss();
       setResult({ status: 'sending', autoSubmitted, timeUsedSeconds, candidate: payload.candidate });
 
-      const delivery = await deliver(payload, 'test-kontabilist', payload.submittedAt);
-      clearSession();
+      const sent = await sendSubmissionEmail(payload);
+      // Në dështim përgjigjet mbeten në localStorage — hapja e radhës riprovon
+      // dërgimin automatik; kandidati sheh gjithsesi ekranin e falënderimit.
+      if (sent) clearSession();
       setResult({
         status: 'delivered',
-        delivery,
         autoSubmitted,
         timeUsedSeconds,
         candidate: payload.candidate,
@@ -125,7 +126,7 @@ export default function App() {
     if (prev === null) return;
     for (const threshold of TOAST_THRESHOLDS_SECONDS) {
       if (prev > threshold && remaining <= threshold && remaining > 0) {
-        setToast(`Ju kanë mbetur ${Math.ceil(remaining / 60)} minuta`);
+        toast(`Ju kanë mbetur ${Math.ceil(remaining / 60)} minuta`);
       }
     }
   }, [phase, remaining]);
@@ -159,8 +160,6 @@ export default function App() {
     return () => window.removeEventListener('beforeunload', warn);
   }, [phase]);
 
-  const dismissToast = useCallback(() => setToast(null), []);
-
   function startTest() {
     const now = Date.now();
     saveStartedAt(new Date(now).toISOString());
@@ -175,7 +174,7 @@ export default function App() {
     setError(null);
     setStartedAtMs(now);
     setPhase('test');
-    setToast('Mirë se vini! Ju urojmë shumë suksese 🍀');
+    toast('Mirë se vini! Ju urojmë shumë suksese 🍀');
   }
 
   function handleChange(question: Question, value: AnswerValue) {
@@ -224,42 +223,49 @@ export default function App() {
     }
   }
 
-  if (phase === 'intro') return <IntroScreen onStart={startTest} />;
-  if (phase === 'done' && result) return <CompletionScreen result={result} firstName={firstName} />;
-  if (phase === 'done') return null;
+  let screen: ReactNode = null;
+  if (phase === 'intro') {
+    screen = <IntroScreen onStart={startTest} />;
+  } else if (phase === 'done') {
+    screen = result ? <CompletionScreen result={result} firstName={firstName} /> : null;
+  } else {
+    const question = questions[step];
+    screen = (
+      <div className="flex min-h-dvh flex-col bg-white text-slate-900">
+        <header className="sticky top-0 z-10 border-b border-slate-100 bg-white/90 backdrop-blur">
+          <div className="mx-auto flex w-full max-w-2xl items-center justify-between px-4 py-3 sm:px-6">
+            <span className="text-sm font-semibold">Kontabilist i Brendshëm</span>
+            <TimerBadge remainingSeconds={remaining} />
+          </div>
+        </header>
 
-  const question = questions[step];
+        <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-8 sm:px-6 sm:py-10">
+          <div className="my-auto w-full">
+            <QuestionStep
+              question={question}
+              displayTitle={personalizeTitle(question, firstName)}
+              index={step}
+              total={questions.length}
+              value={answers[question.id]}
+              references={references[question.id] ?? []}
+              error={error}
+              locked={locked}
+              isLast={step === questions.length - 1}
+              onChange={(value) => handleChange(question, value)}
+              onReferencesChange={(links) => handleReferencesChange(question, links)}
+              onBack={goBack}
+              onNext={goNext}
+            />
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-white text-slate-900">
-      <header className="sticky top-0 z-10 border-b border-slate-100 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-2xl items-center justify-between px-4 py-3 sm:px-6">
-          <span className="text-sm font-semibold">Kontabilist i Brendshëm</span>
-          <TimerBadge remainingSeconds={remaining} />
-        </div>
-      </header>
-
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-8 sm:px-6 sm:py-10">
-        <div className="my-auto w-full">
-          <QuestionStep
-            question={question}
-            displayTitle={personalizeTitle(question, firstName)}
-            index={step}
-            total={questions.length}
-            value={answers[question.id]}
-            references={references[question.id] ?? []}
-            error={error}
-            locked={locked}
-            isLast={step === questions.length - 1}
-            onChange={(value) => handleChange(question, value)}
-            onReferencesChange={(links) => handleReferencesChange(question, links)}
-            onBack={goBack}
-            onNext={goNext}
-          />
-        </div>
-      </main>
-
-      {toast && <Toast message={toast} onDismiss={dismissToast} />}
-    </div>
+    <>
+      {screen}
+      <Toaster position="bottom-center" duration={6000} />
+    </>
   );
 }

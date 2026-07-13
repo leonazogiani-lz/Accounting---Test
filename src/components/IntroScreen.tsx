@@ -1,3 +1,6 @@
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+
 export default function IntroScreen({ onStart }: { onStart: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-white px-4 py-12 text-slate-900 sm:px-6">
@@ -7,7 +10,7 @@ export default function IntroScreen({ onStart }: { onStart: () => void }) {
           Faleminderit që keni zgjedhur të bëheni pjesë e këtij procesi. Ju urojmë shumë suksese!
         </p>
 
-        <section className="mt-10 rounded-xl border border-slate-200 bg-slate-50 p-6 text-left sm:p-8">
+        <Card className="mt-10 gap-0 rounded-xl border-slate-200 bg-slate-50 p-6 text-left shadow-none sm:p-8">
           <h2 className="text-center text-sm font-semibold tracking-wide text-slate-500 uppercase">
             Rregullat e testit
           </h2>
@@ -25,15 +28,15 @@ export default function IntroScreen({ onStart }: { onStart: () => void }) {
             </li>
             <li>Përgjigjet ruhen automatikisht.</li>
           </ul>
-        </section>
+        </Card>
 
-        <button
+        <Button
           type="button"
           onClick={onStart}
-          className="mt-10 w-full rounded-lg bg-slate-900 px-10 py-4 text-base font-semibold text-white transition hover:bg-slate-700 sm:w-auto"
+          className="mt-10 h-auto w-full rounded-lg bg-slate-900 px-10 py-4 text-base font-semibold text-white hover:bg-slate-700 sm:w-auto"
         >
           Fillo testin
-        </button>
+        </Button>
       </main>
     </div>
   );

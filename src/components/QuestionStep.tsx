@@ -1,4 +1,11 @@
 import { useLayoutEffect, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
+import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 import type { Question } from '../questions';
 import { DEFAULT_COUNTRY_CODE } from '../countries';
 import type { AnswerValue, PhoneValue } from '../lib/storage';
@@ -21,8 +28,9 @@ type Props = {
   onNext: () => void;
 };
 
-const inputClass =
-  'w-full rounded-lg border border-slate-300 px-4 py-3 text-base outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 disabled:bg-slate-50 disabled:text-slate-400';
+// Mban pamjen e mëparshme të fushave mbi bazën e komponentëve shadcn
+const fieldClass =
+  'h-auto rounded-lg border-slate-300 px-4 py-3 text-base md:text-base shadow-none focus-visible:border-slate-900 focus-visible:ring-2 focus-visible:ring-slate-900/10 disabled:bg-slate-50 disabled:text-slate-400 disabled:opacity-100';
 
 export default function QuestionStep({
   question,
@@ -62,12 +70,10 @@ export default function QuestionStep({
       <p className="text-center text-sm font-medium text-slate-500">
         Pyetja {index + 1} nga {total}
       </p>
-      <div className="mx-auto mt-3 h-1.5 w-full max-w-md overflow-hidden rounded-full bg-slate-100">
-        <div
-          className="h-full rounded-full bg-slate-900 transition-all duration-300"
-          style={{ width: `${((index + 1) / total) * 100}%` }}
-        />
-      </div>
+      <Progress
+        value={((index + 1) / total) * 100}
+        className="mx-auto mt-3 h-1.5 w-full max-w-md bg-slate-100"
+      />
 
       <h2 className="mt-8 text-center text-lg leading-relaxed font-semibold text-balance text-slate-900 sm:text-xl">
         {displayTitle}
@@ -75,7 +81,7 @@ export default function QuestionStep({
 
       <div className="mt-6">
         {question.type === 'short' && (
-          <input
+          <Input
             type="text"
             autoComplete="off"
             value={text}
@@ -87,7 +93,7 @@ export default function QuestionStep({
                 onNext();
               }
             }}
-            className={inputClass}
+            className={fieldClass}
           />
         )}
 
@@ -97,46 +103,47 @@ export default function QuestionStep({
             locked={locked}
             onChange={onChange}
             onEnter={onNext}
-            inputClass={inputClass}
+            fieldClass={fieldClass}
           />
         )}
 
         {question.type === 'checkbox' && (
           <div className="space-y-2.5">
-            {question.options?.map((option) => (
-              <label
+            {question.options?.map((option, i) => (
+              <Label
                 key={option}
-                className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 px-4 py-3 transition select-none has-checked:border-slate-900 has-checked:bg-slate-50 hover:bg-slate-50"
+                htmlFor={`${question.id}-${i}`}
+                className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 px-4 py-3 leading-normal font-normal transition select-none hover:bg-slate-50 has-[[data-state=checked]]:border-slate-900 has-[[data-state=checked]]:bg-slate-50"
               >
-                <input
-                  type="checkbox"
+                <Checkbox
+                  id={`${question.id}-${i}`}
                   disabled={locked}
                   checked={selected.includes(option)}
-                  onChange={(e) =>
+                  onCheckedChange={(checked) =>
                     onChange(
-                      e.target.checked
+                      checked === true
                         ? [...selected, option]
                         : selected.filter((o) => o !== option),
                     )
                   }
-                  className="mt-1 h-4 w-4 accent-slate-900"
+                  className="mt-0.5"
                 />
                 <span className="text-[15px] text-slate-800">{option}</span>
-              </label>
+              </Label>
             ))}
           </div>
         )}
 
         {question.type === 'long' && (
           <>
-            <textarea
+            <Textarea
               ref={textareaRef}
               rows={6}
               autoComplete="off"
               value={text}
               disabled={locked}
               onChange={(e) => onChange(e.target.value)}
-              className={`${inputClass} resize-none overflow-hidden leading-relaxed`}
+              className={cn(fieldClass, 'resize-none overflow-hidden leading-relaxed')}
             />
             <p className="mt-1.5 text-right text-xs text-slate-400 tabular-nums">
               {text.length} karaktere
@@ -146,7 +153,7 @@ export default function QuestionStep({
                 links={references}
                 locked={locked}
                 onChange={onReferencesChange}
-                inputClass={inputClass}
+                fieldClass={fieldClass}
               />
             )}
           </>
@@ -160,22 +167,23 @@ export default function QuestionStep({
       )}
 
       <div className="mt-10 flex items-center justify-between gap-3">
-        <button
+        <Button
           type="button"
+          variant="outline"
           onClick={onBack}
           disabled={index === 0 || locked}
-          className="rounded-lg border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+          className="h-auto rounded-lg border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 shadow-none hover:bg-slate-50 disabled:opacity-40"
         >
           Prapa
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           onClick={onNext}
           disabled={locked}
-          className="rounded-lg bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+          className="h-auto rounded-lg bg-slate-900 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-40"
         >
           {isLast ? 'Dërgo testin' : 'Vazhdo'}
-        </button>
+        </Button>
       </div>
     </div>
   );

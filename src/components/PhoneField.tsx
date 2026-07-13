@@ -1,3 +1,12 @@
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 import { countries } from '../countries';
 import type { PhoneValue } from '../lib/storage';
 
@@ -6,26 +15,35 @@ type Props = {
   locked: boolean;
   onChange: (value: PhoneValue) => void;
   onEnter: () => void;
-  inputClass: string;
+  fieldClass: string;
 };
 
-export default function PhoneField({ value, locked, onChange, onEnter, inputClass }: Props) {
+export default function PhoneField({ value, locked, onChange, onEnter, fieldClass }: Props) {
   return (
     <div className="flex flex-col gap-2 sm:flex-row">
-      <select
-        aria-label="Shteti"
+      <Select
         value={value.country}
         disabled={locked}
-        onChange={(e) => onChange({ ...value, country: e.target.value })}
-        className={`${inputClass} sm:w-64 sm:shrink-0`}
+        onValueChange={(country) => onChange({ ...value, country })}
       >
-        {countries.map((c) => (
-          <option key={c.code} value={c.code}>
-            {c.flag} {c.name} ({c.prefix})
-          </option>
-        ))}
-      </select>
-      <input
+        <SelectTrigger
+          aria-label="Shteti"
+          className={cn(
+            fieldClass,
+            'h-auto w-full justify-between text-base whitespace-normal data-[size=default]:h-auto sm:w-64 sm:shrink-0',
+          )}
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {countries.map((c) => (
+            <SelectItem key={c.code} value={c.code}>
+              {c.flag} {c.name} ({c.prefix})
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Input
         type="tel"
         inputMode="tel"
         autoComplete="off"
@@ -39,7 +57,7 @@ export default function PhoneField({ value, locked, onChange, onEnter, inputClas
             onEnter();
           }
         }}
-        className={inputClass}
+        className={fieldClass}
       />
     </div>
   );

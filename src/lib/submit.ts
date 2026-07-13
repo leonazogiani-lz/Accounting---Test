@@ -1,8 +1,10 @@
+import emailjs from '@emailjs/browser';
 import { CANDIDATE_NAME_ID, CANDIDATE_PHONE_ID, questions } from '../questions';
 import { findCountry, formatInternational } from '../countries';
+import { formatTime } from './time';
 import type { AnswersMap, AnswerValue, PhoneValue, ReferencesMap } from './storage';
 
-export type Delivery = 'sent' | 'downloaded';
+export const RECIPIENT_EMAIL = 'info@keqyr.com';
 
 export type SubmissionPayload = {
   candidate: { name: string; phone: string };
@@ -14,7 +16,6 @@ export type SubmissionPayload = {
 };
 
 export type FeedbackPayload = {
-  type: 'feedback';
   candidate: { name: string; phone: string };
   difficulty: number; // 1–5
   difficultyLabel: string;
@@ -65,36 +66,93 @@ export function buildPayload(
   };
 }
 
-export async function deliver(
-  payload: SubmissionPayload | FeedbackPayload,
-  filePrefix: string,
-  stampIso: string,
-): Promise<Delivery> {
-  const url = import.meta.env.VITE_SUBMIT_URL;
-  if (typeof url === 'string' && url.trim() !== '') {
-    try {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) return 'sent';
-    } catch {
-      // rrjeti dështoi — kalojmë te shkarkimi lokal
+function formatSubmissionBody(p: SubmissionPayload): string {
+  const lines = [
+    'TESTI: Kontabilist i Brendshëm',
+    '',
+    `Kandidati: ${p.candidate.name || '(pa emër)'}`,
+    `Telefoni: ${p.candidate.phone || '(pa numër)'}`,
+    '',
+    `Filloi: ${p.startedAt}`,
+    `Dërguar: ${p.submittedAt}`,
+    `Koha e përdorur: ${formatTime(p.timeUsedSeconds)}`,
+    `Dërgim automatik (koha skadoi): ${p.autoSubmitted ? 'Po' : 'Jo'}`,
+    '',
+    '================ PËRGJIGJET ================',
+  ];
+  p.answers.forEach((a, i) => {
+    lines.push('', `${i + 1}. ${a.title}`, '', a.answer || '(pa përgjigje)');
+    if (a.references.length > 0) {
+      lines.push(`Referencat: ${a.references.join(' | ')}`);
     }
-  }
-  downloadJson(payload, `${filePrefix}-${stampIso.replace(/[:.]/g, '-')}.json`);
-  return 'downloaded';
+  });
+  return lines.join('\n');
 }
 
-function downloadJson(payload: unknown, filename: string): void {
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+function formatFeedbackBody(p: FeedbackPayload): string {
+  return [
+    'VLERËSIMI I VËSHTIRËSISË SË TESTIT',
+    '',
+    `Kandidati: ${p.candidate.name || '(pa emër)'}`,
+    `Telefoni: ${p.candidate.phone || '(pa numër)'}`,
+    '',
+    `Vështirësia: ${p.difficulty}/5 — ${p.difficultyLabel}`,
+    `Komenti: ${p.comment || '(pa koment)'}`,
+    `Dërguar: ${p.submittedAt}`,
+  ].join('\n');
+}
+
+function emailConfig() {
+  const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+  const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+  const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+  if (!serviceId || !templateId || !publicKey) return null;
+  return { serviceId, templateId, publicKey };
+}
+
+// Dy përpjekje të heshtura; dështimi regjistrohet vetëm në console —
+// kandidatit nuk i shfaqet asnjë gabim.
+async function sendEmail(subject: string, body: string, candidateName: string): Promise<boolean> {
+  const config = emailConfig();
+  if (!config) {
+    console.error('EmailJS nuk është konfiguruar (VITE_EMAILJS_*) — email-i nuk u dërgua.');
+    return false;
+  }
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      await emailjs.send(
+        config.serviceId,
+        config.templateId,
+        {
+          to_email: RECIPIENT_EMAIL,
+          subject,
+          body,
+          candidate_name: candidateName,
+        },
+        { publicKey: config.publicKey },
+      );
+      return true;
+    } catch (error) {
+      if (attempt === 2) {
+        console.error('Dërgimi i email-it dështoi pas dy përpjekjeve:', error);
+      }
+    }
+  }
+  return false;
+}
+
+export function sendSubmissionEmail(payload: SubmissionPayload): Promise<boolean> {
+  return sendEmail(
+    `Test i ri — ${payload.candidate.name || 'Kandidat pa emër'} (Kontabilist i Brendshëm)`,
+    formatSubmissionBody(payload),
+    payload.candidate.name,
+  );
+}
+
+export function sendFeedbackEmail(payload: FeedbackPayload): Promise<boolean> {
+  return sendEmail(
+    `Vlerësim vështirësie — ${payload.candidate.name || 'Kandidat pa emër'} (Kontabilist i Brendshëm)`,
+    formatFeedbackBody(payload),
+    payload.candidate.name,
+  );
 }

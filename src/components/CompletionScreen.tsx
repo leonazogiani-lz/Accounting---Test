@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import confetti from 'canvas-confetti';
-import { deliver, type Delivery, type FeedbackPayload } from '../lib/submit';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
+import { sendFeedbackEmail, type FeedbackPayload } from '../lib/submit';
 import { formatTime } from '../lib/time';
 
 export type SubmitResult = {
   status: 'sending' | 'delivered';
-  delivery?: Delivery;
   autoSubmitted: boolean;
   timeUsedSeconds: number;
   candidate: { name: string; phone: string };
@@ -13,80 +16,76 @@ export type SubmitResult = {
 
 const DIFFICULTY_LABELS = ['Shumë i lehtë', 'I lehtë', 'Mesatar', 'I vështirë', 'Shumë i vështirë'];
 
-type FeedbackState =
-  | { status: 'idle' }
-  | { status: 'sending' }
-  | { status: 'done'; delivery: Delivery };
+type FeedbackState = 'idle' | 'sending' | 'done';
 
 function FeedbackCard({ candidate }: { candidate: { name: string; phone: string } }) {
   const [difficulty, setDifficulty] = useState<number | null>(null);
   const [comment, setComment] = useState('');
-  const [state, setState] = useState<FeedbackState>({ status: 'idle' });
+  const [state, setState] = useState<FeedbackState>('idle');
 
-  if (state.status === 'done') {
+  if (state === 'done') {
     return (
-      <div className="mt-10 w-full rounded-xl border border-slate-200 bg-slate-50 p-6">
+      <Card className="mt-10 w-full gap-0 rounded-xl border-slate-200 bg-slate-50 p-6 shadow-none">
         <p className="text-[15px] font-medium text-slate-700">Faleminderit për vlerësimin!</p>
-        {state.delivery === 'downloaded' && (
-          <p className="mt-2 text-sm text-slate-500">
-            Vlerësimi u shkarkua si skedar — ju lutem dërgojeni bashkë me testin.
-          </p>
-        )}
-      </div>
+      </Card>
     );
   }
 
   async function send() {
-    if (difficulty === null || state.status === 'sending') return;
-    setState({ status: 'sending' });
+    if (difficulty === null || state === 'sending') return;
+    setState('sending');
     const payload: FeedbackPayload = {
-      type: 'feedback',
       candidate,
       difficulty,
       difficultyLabel: DIFFICULTY_LABELS[difficulty - 1],
       comment: comment.trim(),
       submittedAt: new Date().toISOString(),
     };
-    const delivery = await deliver(payload, 'vleresimi', payload.submittedAt);
-    setState({ status: 'done', delivery });
+    // Dështimi është i heshtur (vetëm në console) — kandidati sheh gjithmonë falënderimin
+    await sendFeedbackEmail(payload);
+    setState('done');
   }
 
   return (
-    <div className="mt-10 w-full rounded-xl border border-slate-200 bg-slate-50 p-6 text-center">
+    <Card className="mt-10 w-full gap-0 rounded-xl border-slate-200 bg-slate-50 p-6 text-center shadow-none">
       <p className="text-[15px] font-semibold text-slate-700">Sa i vështirë ju duk testi?</p>
       <div className="mt-4 flex flex-wrap justify-center gap-2">
         {DIFFICULTY_LABELS.map((label, i) => (
-          <button
+          <Button
             key={label}
             type="button"
+            variant="outline"
             onClick={() => setDifficulty(i + 1)}
-            className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+            className={cn(
+              'h-auto rounded-full px-4 py-2 text-sm font-medium shadow-none',
               difficulty === i + 1
-                ? 'border-slate-900 bg-slate-900 text-white'
-                : 'border-slate-300 bg-white text-slate-600 hover:border-slate-500'
-            }`}
+                ? 'border-slate-900 bg-slate-900 text-white hover:bg-slate-900 hover:text-white'
+                : 'border-slate-300 bg-white text-slate-600 hover:border-slate-500 hover:bg-white hover:text-slate-600',
+            )}
           >
             {label}
-          </button>
+          </Button>
         ))}
       </div>
-      <textarea
+      <Textarea
         rows={3}
         autoComplete="off"
         placeholder="Komenti juaj (opsional)"
         value={comment}
         onChange={(e) => setComment(e.target.value)}
-        className="mt-4 w-full resize-none rounded-lg border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
+        className="mt-4 h-auto resize-none rounded-lg border-slate-300 bg-white px-4 py-3 text-sm shadow-none focus-visible:border-slate-900 focus-visible:ring-2 focus-visible:ring-slate-900/10"
       />
-      <button
-        type="button"
-        onClick={() => void send()}
-        disabled={difficulty === null || state.status === 'sending'}
-        className="mt-4 rounded-lg bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        {state.status === 'sending' ? 'Duke dërguar…' : 'Dërgo vlerësimin'}
-      </button>
-    </div>
+      <div>
+        <Button
+          type="button"
+          onClick={() => void send()}
+          disabled={difficulty === null || state === 'sending'}
+          className="mt-4 h-auto rounded-lg bg-slate-900 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-40"
+        >
+          {state === 'sending' ? 'Duke dërguar…' : 'Dërgo vlerësimin'}
+        </Button>
+      </div>
+    </Card>
   );
 }
 
@@ -142,24 +141,7 @@ export default function CompletionScreen({
             {firstName ? `Faleminderit, ${firstName}!` : 'Faleminderit!'}
           </h1>
 
-          {result.autoSubmitted && (
-            <p className="mt-4 rounded-lg bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800">
-              Koha përfundoi — përgjigjet u dërguan automatikisht.
-            </p>
-          )}
-
-          {result.delivery === 'sent' ? (
-            <p className="mt-4 text-base leading-relaxed text-slate-600">
-              Testi juaj u dërgua me sukses.
-            </p>
-          ) : (
-            <p className="mt-4 text-base leading-relaxed text-slate-600">
-              Përgjigjet u shkarkuan si skedar JSON. Ju lutem dërgojeni këtë skedar tek personi
-              përgjegjës.
-            </p>
-          )}
-
-          <p className="mt-2 text-[15px] leading-relaxed text-slate-600">
+          <p className="mt-4 text-[15px] leading-relaxed text-slate-600">
             Përgjigjet tuaja do të shqyrtohen dhe do të merrni një përgjigje brenda 2 javëve.
           </p>
 
