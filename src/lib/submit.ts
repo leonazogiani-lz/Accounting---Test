@@ -4,7 +4,9 @@ import { findCountry, formatInternational } from '../countries';
 import { formatTime } from './time';
 import type { AnswersMap, AnswerValue, PhoneValue, ReferencesMap } from './storage';
 
-export const RECIPIENT_EMAIL = 'info@keqyr.com';
+// Marrësit e testeve dhe të vlerësimeve — të ndarë me presje; shabloni i
+// EmailJS duhet ta ketë fushën "To Email" = {{to_email}}
+export const RECIPIENT_EMAILS = 'info@keqyr.com, ulpian.morina@keqyr.com';
 
 export type SubmissionPayload = {
   candidate: { name: string; phone: string };
@@ -124,7 +126,7 @@ async function sendEmail(subject: string, body: string, candidateName: string): 
         config.serviceId,
         config.templateId,
         {
-          to_email: RECIPIENT_EMAIL,
+          to_email: RECIPIENT_EMAILS,
           subject,
           body,
           candidate_name: candidateName,

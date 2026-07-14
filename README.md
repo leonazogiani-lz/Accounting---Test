@@ -18,13 +18,17 @@ npm run build      # typecheck + production build (output in dist/)
 
 ### Configure submission (EmailJS)
 
-Answers (and the difficulty feedback) are emailed to **info@keqyr.com** via
-[EmailJS](https://www.emailjs.com) — client-side, no backend.
+Answers (and the difficulty feedback) are emailed to **info@keqyr.com** and
+**ulpian.morina@keqyr.com** via [EmailJS](https://www.emailjs.com) —
+client-side, no backend. The recipient list lives in `RECIPIENT_EMAILS` in
+[src/lib/submit.ts](src/lib/submit.ts) (comma-separated).
 
 1. **Email Service** — dashboard → *Email Services* → *Add New Service* (e.g.
    Gmail), connect the mailbox → copy the **Service ID**.
 2. **Email Template** — dashboard → *Email Templates* → *Create New Template*:
-   - **To Email:** `{{to_email}}` (the app always sends `info@keqyr.com`)
+   - **To Email:** `{{to_email}}` — required; the app fills it with both
+     recipients (`info@keqyr.com, ulpian.morina@keqyr.com`). Do not hardcode a
+     single address here or the second recipient will be dropped.
    - **Subject:** `{{subject}}`
    - **Content:** switch to the code editor and use `<pre>{{body}}</pre>` so the
      plain-text formatting (line breaks) is preserved
