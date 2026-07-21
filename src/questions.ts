@@ -51,7 +51,7 @@ export const questions: Question[] = [
     allowReferences: true,
     personalize: true,
     title:
-      'Kompania juaj paguan çdo muaj për një adresë virtuale biznesi. Si e trajtoni këtë pagesë për qëllime tatimore? Cilat hapa i ndërmerrni për të verifikuar nëse duhet të mbani tatim në burim apo jo?',
+      'Kompania juaj paguan çdo muaj për një adresë virtuale biznesi të ofruar nga një hapësirë coworking. Si e trajtoni këtë pagesë për qëllime tatimore?',
     required: true,
   },
   {
@@ -60,7 +60,7 @@ export const questions: Question[] = [
     allowReferences: true,
     personalize: true,
     title:
-      'Cilat ndryshime në ARBK dhe ATK kërkojnë nënshkrim apo dokument të noterizuar, dhe për cilat mjafton nënshkrimi i thjeshtë ose ai elektronik? Jepni shembuj konkretë nga të dyja institucionet.',
+      'Për cilat ndryshime pranë ARBK-së dhe ATK-së kërkohet nënshkrim i vërtetuar nga noteri ose dokument i noterizuar, dhe në cilat raste mjafton nënshkrimi i zakonshëm apo elektronik? Ju lutem, jepni shembuj konkretë për secilin institucion.',
     required: true,
   },
   {
@@ -69,25 +69,16 @@ export const questions: Question[] = [
     allowReferences: true,
     personalize: true,
     title:
-      "Një punonjës do të udhëtojë për punë dhe kompania dëshiron t'i dërgojë paraprakisht para për udhëtimin. Si i trajtoni këto para dhe shpenzimet e udhëtimit nga ana tatimore dhe kontabël? Çfarë dokumentacioni kërkoni nga punonjësi dhe çfarë ndodh nëse shpenzimet i tejkalojnë limitet e lejuara? Përshkruani dy situata, udhëtim brenda vendit dhe jashtë vendit.",
+      'Një punonjës do të udhëtojë për qëllime pune dhe kompania planifikon t’i japë paraprakisht një avans për mbulimin e shpenzimeve të udhëtimit. Si duhet të trajtohen dhe regjistrohen këto mjete nga aspekti kontabël dhe tatimor?\n\nCilat dokumente duhet t’i dorëzojë punonjësi pas përfundimit të udhëtimit, si bëhet arsyetimi dhe mbyllja e avansit, dhe si trajtohet diferenca kur shpenzimet reale janë më të larta ose më të ulëta se shuma e dhënë paraprakisht? Gjithashtu, çfarë pasoja tatimore lindin nëse mëditjet ose shpenzimet e tjera të udhëtimit tejkalojnë limitet e lejuara?\n\nJu lutem, shpjegojeni trajtimin përmes dy shembujve konkretë: një udhëtim pune brenda Kosovës dhe një udhëtim pune jashtë vendit.',
     required: true,
   },
   {
-    id: 'angazhimi-dizajnerit',
+    id: 'pushimet-e-punonjesve',
     type: 'long',
     allowReferences: true,
     personalize: true,
     title:
-      'Kompania angazhon një dizajner (person fizik në Kosovë, pa biznes të regjistruar) për një punë njëhershe prej €800. Si e trajtoni pagesën? Çfarë ndryshon nëse dizajneri është i regjistruar në ARBK si Biznes Individual me NUI? Dhe çfarë rreziku ka nëse ky angazhim vazhdon çdo muaj me orar dhe mbikëqyrje si punonjësit e tjerë?',
-    required: true,
-  },
-  {
-    id: 'vetura-tvsh',
-    type: 'long',
-    allowReferences: true,
-    personalize: true,
-    title:
-      'Kompania blen një veturë €20,000 + TVSH, të cilën drejtori do ta përdorë edhe për punë edhe privatisht. Sa TVSH mund të zbritni? Si trajtohen karburanti dhe servisimi? Nëse vetura importohet nga jashtë, cilat ngarkesa paguhen në import dhe në cilat kuti të deklaratës së TVSH-së raportohet importi?',
+      'Si rregullohen pushimet e punonjësve sipas legjislacionit të punës, duke përfshirë pushimin vjetor të paguar, festat zyrtare dhe pushimin pa pagesë? Sa ditë pushim pa pagesë mund të kërkojë një punonjës, a ekziston një kufi ligjor dhe në cilat raste miratimi i tij varet nga punëdhënësi? Gjithashtu, shpjegoni procedurën e kërkesës, dokumentacionin e nevojshëm dhe ndikimin e pushimit pa pagesë në pagë, kontribute dhe stazh pune.',
     required: true,
   },
   {
@@ -96,7 +87,7 @@ export const questions: Question[] = [
     allowReferences: true,
     personalize: true,
     title:
-      "Nëse do të kishit mundësinë të automatizonit një proces në punën e kontabilitetit, cilin do ta zgjidhnit dhe pse? Përshkruani shkurt si do ta zbatonit dhe cilat kontrolle do t'i mbanit manuale.",
+      'Nëse do të kishit mundësi të automatizonit vetëm një proces në punën e kontabilitetit, cilin proces do të zgjidhnit dhe pse? Përshkruani shkurt mënyrën se si do ta zbatonit automatizimin, përfitimet që prisni të arrini dhe kontrollet kryesore që do t’i mbanit manuale për të garantuar saktësinë dhe pajtueshmërinë.',
     required: true,
   },
 ];

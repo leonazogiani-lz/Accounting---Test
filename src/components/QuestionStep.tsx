@@ -75,7 +75,7 @@ export default function QuestionStep({
         className="mx-auto mt-3 h-1.5 w-full max-w-md bg-slate-100"
       />
 
-      <h2 className="mt-8 text-center text-lg leading-relaxed font-semibold text-balance text-slate-900 sm:text-xl">
+      <h2 className="mt-8 text-center text-lg leading-relaxed font-semibold text-balance whitespace-pre-line text-slate-900 sm:text-xl">
         {displayTitle}
       </h2>
 

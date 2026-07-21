@@ -48,6 +48,9 @@ logs to console, keeps localStorage, still shows the thank-you screen).
 - Timeout: set startedAt so ~4s remain, wait — auto-submit emails with
   "Dërgim automatik (koha skadoi): Po"; inputs lock.
 
+Opening the app with `?reset` wipes the stored session (dev/testing affordance) —
+use it to get a fresh intro between driver scenarios instead of clearing storage.
+
 ## Gotchas (shadcn/Radix selectors)
 
 - The UI is built on shadcn/ui (`src/components/ui/`): the country picker is a Radix
@@ -61,5 +64,9 @@ logs to console, keeps localStorage, still shows the thank-you screen).
   Register a Playwright dialog handler (`page.on('dialog', d => d.accept())`) so
   reloads don't hang on the beforeunload prompt.
 - Enter in a textarea appends `\n` — account for it when asserting restored values.
-- A working driver script covering all of the above: see the session that created
-  this skill (`drive.mjs`: scenarios A happy-flow / B timer / C timeout / D responsive).
+- The driver lives in the repo: `.claude/skills/verify/drive.mjs` (scenarios
+  A happy-flow / B reset+timer / C1 expiry / C2 email-failure / D responsive).
+  `playwright-core` is a devDependency (uses installed Chrome, no browser download).
+  Start the dev server (env above), then: `node .claude/skills/verify/drive.mjs`.
+  Screenshots and the captured email body land in `$TMPDIR/kontabilist-verify-shots`.
+  Its `TOTAL` constant must match the question count in `src/questions.ts`.

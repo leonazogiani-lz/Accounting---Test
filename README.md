@@ -16,6 +16,11 @@ npm run dev        # local dev server
 npm run build      # typecheck + production build (output in dist/)
 ```
 
+While testing: the timer and answers deliberately survive refresh, so to start
+over open the app with `?reset` appended to the URL (e.g.
+`http://localhost:5173/?reset`) — it wipes the saved session and returns to the
+intro screen.
+
 ### Configure submission (EmailJS)
 
 Answers (and the difficulty feedback) are emailed to **info@keqyr.com** and

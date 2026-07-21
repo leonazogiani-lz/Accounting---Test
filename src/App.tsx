@@ -50,8 +50,22 @@ function personalizeTitle(question: Question, firstName: string): string {
   return `${firstName}, ${question.title[0].toLowerCase()}${question.title.slice(1)}`;
 }
 
+// Vetëm për testim gjatë zhvillimit: hapja me ?reset e fshin sesionin e ruajtur
+// dhe kthen te ekrani i fillimit; parametri hiqet nga URL-ja menjëherë.
+function consumeResetParam(): void {
+  const params = new URLSearchParams(window.location.search);
+  if (!params.has('reset')) return;
+  clearSession();
+  params.delete('reset');
+  const query = params.toString();
+  window.history.replaceState(null, '', window.location.pathname + (query ? `?${query}` : ''));
+}
+
 export default function App() {
-  const [session] = useState(loadSession);
+  const [session] = useState(() => {
+    consumeResetParam();
+    return loadSession();
+  });
   const [phase, setPhase] = useState<Phase>(session ? 'test' : 'intro');
   const [startedAtMs, setStartedAtMs] = useState<number | null>(
     session ? Date.parse(session.startedAt) : null,
